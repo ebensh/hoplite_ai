@@ -115,5 +115,5 @@ def polygon_corners(layout, h):
   return corners
 
 def polygon_edges(layout, h):
-  corners = map(point_round, polygon_corners(layout, h))
+  corners = map(lambda p: p.Round(), polygon_corners(layout, h))
   return zip(corners, corners[1:] + [corners[0]])
