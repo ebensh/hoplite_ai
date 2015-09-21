@@ -3,48 +3,48 @@ from grid_lib import *
 
 class TestHexMethods(unittest.TestCase):
   def test_hex_arithmetic(self):
-    self.assertEqual(Hex(4, -10, 6), hex_add(Hex(1, -3, 2), Hex(3, -7, 4)))
-    self.assertEqual(Hex(-2, 4, -2), hex_subtract(Hex(1, -3, 2), Hex(3, -7, 4)))
+    self.assertEqual(Hex(4, -10, 6), Hex(1, -3, 2) + Hex(3, -7, 4))
+    self.assertEqual(Hex(-2, 4, -2), Hex(1, -3, 2) - Hex(3, -7, 4))
+    self.assertEqual(Hex(2, 4, 6), Hex(1, 2, 3).Scale(2))
 
   def test_hex_direction(self):
-    self.assertEqual(Hex(0, -1, 1), hex_direction(2))
+    self.assertEqual(Hex(0, -1, 1), Hex._Direction(2))
 
   def test_hex_neighbor(self):
-    self.assertEqual(Hex(1, -3, 2), hex_neighbor(Hex(1, -2, 1), 2))
+    self.assertEqual(Hex(1, -3, 2), Hex(1, -2, 1).Neighbor(2))
 
   def test_hex_diagonal(self):
-    self.assertEqual(Hex(-1, -1, 2), hex_diagonal_neighbor(Hex(1, -2, 1), 3))
+    self.assertEqual(Hex(-1, -1, 2), Hex(1, -2, 1).DiagonalNeighbor(3))
 
   def test_hex_distance(self):
-    self.assertEqual(7, hex_distance(Hex(3, -7, 4), Hex(0, 0, 0)))
+    self.assertEqual(7, Hex(3, -7, 4).Distance(Hex(0, 0, 0)))
 
   def test_hex_round(self):
     a = Hex(0, 0, 0)
     b = Hex(1, -1, 0)
     c = Hex(0, -1, 1)
     self.assertEqual(Hex(5, -10, 5),
-                     hex_round(hex_lerp(Hex(0, 0, 0), Hex(10, -20, 10), 0.5)))
-    self.assertEqual(a, hex_round(hex_lerp(a, b, 0.499)))
-    self.assertEqual(b, hex_round(hex_lerp(a, b, 0.501)))
-    self.assertEqual(a, hex_round(Hex(a.q * 0.4 + b.q * 0.3 + c.q * 0.3,
-                                      a.r * 0.4 + b.r * 0.3 + c.r * 0.3,
-                                      a.s * 0.4 + b.s * 0.3 + c.s * 0.3)))
-    self.assertEqual(c, hex_round(Hex(a.q * 0.3 + b.q * 0.3 + c.q * 0.4,
-                                      a.r * 0.3 + b.r * 0.3 + c.r * 0.4,
-                                      a.s * 0.3 + b.s * 0.3 + c.s * 0.4)))
+                     Hex.Lerp(Hex(0, 0, 0), Hex(10, -20, 10), 0.5).Round())
+    self.assertEqual(a, Hex.Lerp(a, b, 0.499).Round())
+    self.assertEqual(b, Hex.Lerp(a, b, 0.501).Round())
+    self.assertEqual(a, Hex(a.q * 0.4 + b.q * 0.3 + c.q * 0.3,
+                            a.r * 0.4 + b.r * 0.3 + c.r * 0.3,
+                            a.s * 0.4 + b.s * 0.3 + c.s * 0.3).Round())
+    self.assertEqual(c, Hex(a.q * 0.3 + b.q * 0.3 + c.q * 0.4,
+                            a.r * 0.3 + b.r * 0.3 + c.r * 0.4,
+                            a.s * 0.3 + b.s * 0.3 + c.s * 0.4).Round())
 
   def test_hex_linedraw(self):
     self.assertEqual([Hex(0, 0, 0), Hex(0, -1, 1), Hex(0, -2, 2),
                       Hex(1, -3, 2), Hex(1, -4, 3), Hex(1, -5, 4)],
-                     hex_linedraw(Hex(0, 0, 0), Hex(1, -5, 4)))
+                     Hex.LineDraw(Hex(0, 0, 0), Hex(1, -5, 4)))
 
   def test_layout(self):
     h = Hex(3, 4, -7)
     flat = Layout(layout_flat, Point(10, 15), Point(35, 71))
-    self.assertEqual(h, hex_round(pixel_to_hex(flat, hex_to_pixel(flat, h))))
+    self.assertEqual(h, pixel_to_hex(flat, hex_to_pixel(flat, h)).Round())
     pointy = Layout(layout_pointy, Point(10, 15), Point(35, 71))
-    self.assertEqual(h,
-                     hex_round(pixel_to_hex(pointy, hex_to_pixel(pointy, h))))
+    self.assertEqual(h, pixel_to_hex(pointy, hex_to_pixel(pointy, h)).Round())
 
   def test_conversion_roundtrip(self):
     a = Hex(3, 4, -7)
