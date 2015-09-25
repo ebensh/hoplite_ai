@@ -13,8 +13,8 @@ ALL_HEXES = [Hex(q, -q - s, s)
              if abs(-q - s) <= 5]
 
 def main():
-  img = cv2.imread('screenshots/screenshot1.png', cv2.IMREAD_GRAYSCALE)
-  screen_height, screen_width = img.shape
+  img = cv2.imread('screenshots/screenshot1.png', cv2.IMREAD_COLOR)
+  screen_height, screen_width, screen_depth = img.shape
   layout = Layout(layout_flat, Point(TILE_WIDTH, TILE_HEIGHT),
                   Point(screen_width / 2, screen_height / 2 - 33))
 
