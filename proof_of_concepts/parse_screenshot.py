@@ -15,7 +15,7 @@ ALL_HEXES = [Hex(q, -q - s, s)
 def main():
   img = cv2.imread('screenshots/screenshot1.png', cv2.IMREAD_COLOR)
   screen_height, screen_width, screen_depth = img.shape
-  layout = Layout(layout_flat, Point(TILE_WIDTH, TILE_HEIGHT),
+  layout = Layout(orientation_flat, Point(TILE_WIDTH, TILE_HEIGHT),
                   Point(screen_width / 2, screen_height / 2 - 33))
 
   tile_hexes = []
