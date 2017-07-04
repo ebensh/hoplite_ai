@@ -1,5 +1,6 @@
-from collections import OrderedDict
+from grid_lib import *
 from enum import Enum
+from itertools import groupby
 
 class Monster(Enum):
     Bomb = 1
@@ -14,23 +15,25 @@ ALL_HEXES = [Hex(q, -q - s, s)
              if abs(-q - s) <= 5]
 
 class Board(object):
-  self._tiles = collections.OrderedDict()  
+  _tiles = []
 
   # TODO: This is super hacky, replace with iteration over "y" coordinate.
   def __str__(self):
-    # Any flat layout will do!
-    layout = Layout(layout_flat, Point(50, 50), Point(1000, 1000))
-    def annotate_hex(h): return (p.y, p.x, h)
-    # TODO: Replace with proper group_by (y), order_by(x)
-    for y, x, h in sorted([annotate_hex(h) for h in ALL_HEXES]):
-      if y != cur_y:
-        sys.out.print('\n')
-        old_y
-    
-      
-    def sorted_pts(h): return (hex_to_pixel(layout, h).y, hex_to_pixel(layout, h).x)
-    print_order = sorted(ALL_HEXES, key=sorted_pts)
+    return ','.join([str(qoffset_from_cube(EVEN, h)) for h in ALL_HEXES])
 
-    for hex in print_order:
-      print 
-    hexes.sort(lambda h: hex_to_pixel
+      
+    # Any flat layout will do!
+    ret = ''
+    layout = Layout(orientation_flat, Point(50, 50), Point(1000, 1000))
+    def annotate_hex(h):
+      p = hex_to_pixel(layout, h).Round()
+      return (p.y, p.x, h)
+    annotated_hexes = sorted(map(annotate_hex, ALL_HEXES))  # Sorted by y, x, h
+    for y, row_hexes in groupby(annotated_hexes, lambda (y, x, h): y):
+      print row_hexes
+      row_len = sum(1 for _ in row_hexes)
+      row = ' '.join(map(str, range(row_len)))
+      #for h in xrange(len(row_hexes)):
+      #  ret = ret + '1' + ' '
+      ret += row + '\n'
+    return ret
