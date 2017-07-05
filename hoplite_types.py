@@ -19,8 +19,17 @@ class Board(object):
 
   # TODO: This is super hacky, replace with iteration over "y" coordinate.
   def __str__(self):
-    return ','.join([str(qoffset_from_cube(EVEN, h)) for h in ALL_HEXES])
-
+    row_col_hex = []
+    for h in ALL_HEXES:
+      qoffset = qoffset_from_cube(EVEN, h)
+      row_col_hex.append((qoffset.row, qoffset.col, h))
+    row_col_hex.sort()
+    board_str = ''
+    for _, r_c_hs in groupby(row_col_hex, key=lambda (r, c, h): r):
+      row_str = ' '.join(['1' for r_c_h in r_c_hs])
+      board_str += row_str.center(30) + '\n'
+    return board_str
+    
       
     # Any flat layout will do!
     ret = ''
