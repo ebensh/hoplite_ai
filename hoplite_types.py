@@ -3,19 +3,31 @@ from enum import Enum
 from itertools import groupby
 
 class TileType(Enum):
-    Bomb = 1
-    Bow = 2
-    Sword = 3
-    Wizard = 4
+    # Monsters (anything that can hurt you)
+    BombMon = 1
+    BombMonCooldown = 2
+    Bomb = 3
+    BowMon = 4
+    SwordMon = 5
+    WizardMon = 6
+    WizardMonCooldown = 7
+
+    # Special tiles - places to interact with
+    Altar = 11
+    UsedAltar = 12
+    Fleece = 13
+    LadderDown = 14
+    Portal = 15
+
+    # Status tiles like health, jump, bash, etc.
+    
 
 
-ALL_HEXES = [Hex(q, -q - s, s)
-             for q in xrange(-4, 4 + 1)
-             for s in xrange(-5, 5 + 1)
-             if abs(-q - s) <= 5]
-
-class Board(object):
-  _tiles = {}  # Map from Hex to TileType
+class Board(dict):
+  ALL_HEXES = [Hex(q, -q - s, s)
+               for q in xrange(-4, 4 + 1)
+               for s in xrange(-5, 5 + 1)
+               if abs(-q - s) <= 5]
 
   def __str__(self):
     row_col_hex = []

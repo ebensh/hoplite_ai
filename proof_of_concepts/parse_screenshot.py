@@ -24,8 +24,6 @@ def main():
                                                    polygon_corners(layout, h))))
     #cv2.imwrite('hex_images/hex_{0}_{1}_{2}.png'.format(h.q, h.r, h.s), hex_img)
 
-    qoffset = 
-
     label = 'r{0},c{1}'.format(qoffset_from_cube(EVEN, h).row,
                                qoffset_from_cube(EVEN, h).col)
     #label = "{0},{1},{2}".format(h.q, h.r, h.s)
