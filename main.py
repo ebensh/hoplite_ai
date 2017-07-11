@@ -10,14 +10,15 @@ def main():
 
   screenshot_bytes = emulator_server.GetScreenshot().data
   nparr = np.fromstring(screenshot_bytes, np.uint8)
-  img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+  screenshot = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-  cv2.namedWindow('image', cv2.WINDOW_AUTOSIZE)
-  cv2.imshow('image', img)
-  cv2.waitKey(0)
+  cv2.namedWindow('screenshot', cv2.WINDOW_NORMAL)
+  cv2.namedWindow('tile', cv2.WINDOW_NORMAL)
+  cv2.imshow('screenshot', screenshot)
+
+  cv2.waitKey(1)
+  screen_interpreter.GetBoard(screenshot)
   cv2.destroyAllWindows()
-   #screen_interpreter.GetBoard()
-
 
 if __name__ == '__main__':
   main()
