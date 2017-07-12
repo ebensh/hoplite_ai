@@ -3,9 +3,10 @@ from grid_lib import *
 import numpy as np
 from screen_reader_lib import *
 
-TILE_WIDTH = 40
-TILE_HEIGHT = 37
+TILE_WIDTH = 69
+TILE_HEIGHT = 64
 WHITE = (255, 255, 255)
+BOARD_CENTER_Y = 841
 
 ALL_HEXES = [Hex(q, -q - s, s)
              for q in xrange(-4, 4 + 1)
@@ -13,10 +14,11 @@ ALL_HEXES = [Hex(q, -q - s, s)
              if abs(-q - s) <= 5]
 
 def main():
-  img = cv2.imread('../screenshots/screenshot1.png', cv2.IMREAD_COLOR)
+  img = cv2.imread('screenshot.png', cv2.IMREAD_COLOR)
   screen_height, screen_width, screen_depth = img.shape
+  print img.shape
   layout = Layout(orientation_flat, Point(TILE_WIDTH, TILE_HEIGHT),
-                  Point(screen_width / 2, screen_height / 2 - 33))
+                  Point(screen_width / 2, BOARD_CENTER_Y))
 
   tile_hexes = []
   for h in ALL_HEXES:
@@ -34,7 +36,7 @@ def main():
       print p1, p2
       img = cv2.line(img, p1, p2, WHITE)
 
-  cv2.namedWindow('image', cv2.WINDOW_AUTOSIZE)
+  cv2.namedWindow('image', cv2.WINDOW_NORMAL)
   cv2.imshow('image', img)
   cv2.waitKey(0)
   #cv2.imwrite('screenshot1_labeled.png', img)

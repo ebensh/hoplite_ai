@@ -18,7 +18,12 @@ class TileType(Enum):
     Fleece = 13
     LadderDown = 14
     Portal = 15
-
+    
+    # Ground
+    Floor = 20
+    Liquid = 21
+    
+    
     # Status tiles like health, jump, bash, etc.
     
 
