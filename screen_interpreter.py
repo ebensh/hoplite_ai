@@ -34,7 +34,7 @@ OPTIMAL_SCALES = {}
 
 def GetBoard(screenshot):
   TILE_WIDTH = 69
-  TILE_HEIGHT = 64
+  TILE_HEIGHT = 65
   BOARD_CENTER_Y = 841
 
   ALL_HEXES = [Hex(q, -q - s, s)
@@ -55,20 +55,20 @@ def GetBoard(screenshot):
 
   ASSETS_BASE_PATH  = 'hoplite_assets/cleaned/'
   asset_file_to_tile_type = {
-    #'dung_altar_1.png': TileType.Altar,
-    #'dung_altar_2.png': TileType.Altar,
-    #'dung_altar_3.png': TileType.Altar,
-    #'dung_altar_used_1.png': TileType.UsedAltar,
-    #'dung_fleece_1.png': TileType.Fleece,
-    #'dung_portal_1.png': TileType.Portal,
-    #'dung_portal_2.png': TileType.Portal,
-    #'dung_portal_3.png': TileType.Portal,
-    #'mon_bomb_1.png': TileType.BombMon,
-    #'mon_bomb_cd_1.png': TileType.BombMonCooldown,
-    #'proj_bomb_1.png': TileType.Bomb,
-    #'proj_bomb_2.png': TileType.Bomb,
-    #'proj_bomb_3.png': TileType.Bomb,
-    #'dung_ladderdown_1.png': TileType.LadderDown,
+    'dung_altar_1.png': TileType.Altar,
+    'dung_altar_2.png': TileType.Altar,
+    'dung_altar_3.png': TileType.Altar,
+    'dung_altar_used_1.png': TileType.UsedAltar,
+    'dung_fleece_1.png': TileType.Fleece,
+    'dung_portal_1.png': TileType.Portal,
+    'dung_portal_2.png': TileType.Portal,
+    'dung_portal_3.png': TileType.Portal,
+    'mon_bomb_1.png': TileType.BombMon,
+    'mon_bomb_cd_1.png': TileType.BombMonCooldown,
+    'proj_bomb_1.png': TileType.Bomb,
+    'proj_bomb_2.png': TileType.Bomb,
+    'proj_bomb_3.png': TileType.Bomb,
+    'dung_ladderdown_1.png': TileType.LadderDown,
     'tile_floor_1.png': TileType.Floor,
     'tile_floor_2.png': TileType.Floor,
     'tile_liquid_1.png': TileType.Liquid,
@@ -81,27 +81,29 @@ def GetBoard(screenshot):
   }
 
   tile_hexes = []
-  for h in DEBUG_HEXES:  #ALL_HEXES:  #DEBUG_HEXES:
+  for h in ALL_HEXES:  #DEBUG_HEXES:
     print "Looking in hex %s" % (h,)
     hex_img = GetImageByCorners(screenshot,
                                 np.array(map(lambda p: p.Round(),
                                              polygon_corners(layout, h))),
-                                pad=10)
+                                pad=12)
     hex_width, hex_height = hex_img.shape[::-1]
     cv2.imshow('tile', hex_img)
     cv2.waitKey(1)
+    hex_tile_type = None
 
-    for asset_file, tile_type in asset_file_to_tile_type.iteritems():
+    for asset_file, asset_tile_type in asset_file_to_tile_type.iteritems():
       asset_path = os.path.join(ASSETS_BASE_PATH, asset_file)
       asset = cv2.imread(asset_path, cv2.IMREAD_GRAYSCALE)
       asset_width, asset_height = asset.shape[::-1]
+      METHOD = cv2.TM_SQDIFF_NORMED  # Seems to have trouble with the background tiles, but monsters, stairs, etc. identified quickly
 
       if asset_file not in OPTIMAL_SCALES:
         optimal_scale = None
         optimal_match_value = 0
 
-        for dpi_multiple in xrange(1, 5, 1):
-          for scale_factor in [x / 10.0 for x in range(5, 20)]:  # 0.5 to 1.9
+        for dpi_multiple in xrange(4, 5, 1):
+          for scale_factor in [x / 10.0 for x in range(9, 12)]:  # 0.5 to 1.9
             #print asset_path, dpi_multiple, scale_factor
             scaled_width = int(asset_width * dpi_multiple * scale_factor)
             scaled_height = int(asset_height * dpi_multiple * scale_factor)
@@ -111,8 +113,11 @@ def GetBoard(screenshot):
 
             cv2.imshow('asset', asset_scaled)
             cv2.waitKey(1)
-            res = cv2.matchTemplate(hex_img, asset_scaled, cv2.TM_CCOEFF_NORMED)
+            res = cv2.matchTemplate(hex_img, asset_scaled, METHOD)
+
             minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(res)
+            if METHOD in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+              maxVal = 1-minVal
 
             if maxVal > optimal_match_value and maxVal > THRESHOLD:
               optimal_scale = (dpi_multiple, scale_factor)
@@ -129,18 +134,23 @@ def GetBoard(screenshot):
         asset_scaled = cv2.resize(asset_scaled, (scaled_width, scaled_height))
         
         cv2.imshow('asset', asset_scaled)
-        res = cv2.matchTemplate(hex_img, asset_scaled, cv2.TM_CCOEFF_NORMED)
+        res = cv2.matchTemplate(hex_img, asset_scaled, METHOD)
+        if METHOD in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]: res = 1 - res
         
         loc = np.where(res >= THRESHOLD)
         for pt in zip(*loc[::-1]):
           print "ScreenInterpter: %s: %s" % (h, asset_file)
+          hex_tile_type = asset_tile_type
           cv2.rectangle(hex_img, pt,
                         (pt[0] + scaled_width, pt[1] + scaled_height),
                         (0,0,255), 2)
           cv2.imshow('tile', hex_img)
           cv2.waitKey(100)
           break
-        
+      if hex_tile_type: break
+    if not hex_tile_type:
+      cv2.imshow('tile', hex_img)
+      cv2.waitKey(0)
   
 
 def GetStateFromScreenshot(screenshot):
