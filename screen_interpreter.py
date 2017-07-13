@@ -11,7 +11,7 @@ from hoplite_types import Board, TileType
 # Given an image and a set of points that bound a region of interest (ROI),
 # most often the corners of a Hex, will use the points as a contour
 # to create a masking polygon, returning just the image in the ROI.
-def GetImageByCorners(img, points, pad=0):
+def GetImageByCorners(img, points, min_height=0):
   WHITE = (255, 255, 255)
   
   # Create the mask image and fill it with white poly bounding the points.
@@ -20,46 +20,46 @@ def GetImageByCorners(img, points, pad=0):
 
   # Get the bounding rectangle of the mask; we'll only return this region.
   x,y,w,h = cv2.boundingRect(points)
-  x -= pad/2
-  y -= pad/2
-  w += pad
-  h += pad
+  if h < min_height:
+    delta = min_height - h
+    y -= delta
+    h = min_height + 20
 
   # Apply the mask and crop to the bounding rectangle, returning the result.
   return img[y:y+h,x:x+w].copy()
   #return np.bitwise_and(img, mask)[y:y+h,x:x+w].copy()
 
 ASSET_FILE_TO_TILE_TYPE = {
-  #'dung_altar_1.png': TileType.Altar,
+  'dung_altar_1.png': TileType.Altar,
   'dung_altar_2.png': TileType.Altar,
-  #'dung_altar_3.png': TileType.Altar,
-  #'dung_altar_used_1.png': TileType.UsedAltar,
-  # 'dung_fleece_1.png': TileType.Fleece,
-  # 'dung_portal_1.png': TileType.Portal,
-  # 'dung_portal_2.png': TileType.Portal,
-  # 'dung_portal_3.png': TileType.Portal,
-  # 'mon_bomb_1.png': TileType.BombMon,
-  # 'mon_bomb_cd_1.png': TileType.BombMonCooldown,
-  # 'proj_bomb_1.png': TileType.Bomb,
-  # 'proj_bomb_2.png': TileType.Bomb,
-  # 'proj_bomb_3.png': TileType.Bomb,
-  # 'dung_ladderdown_1.png': TileType.LadderDown,
-  # 'tile_floor_1.png': TileType.Floor,
-  # 'tile_floor_2.png': TileType.Floor,
-  # 'tile_liquid_1.png': TileType.Liquid,
-  # 'tile_liquid_2.png': TileType.Liquid,
-  # 'tile_liquid_3.png': TileType.Liquid,
-  # 'mon_bow_1.png': TileType.BowMon,
-  # 'mon_sword_1.png': TileType.SwordMon,
-  # 'mon_wizard_1.png': TileType.WizardMon,
-  # 'mon_wizard_cd_1.png': TileType.WizardMonCooldown,
-  # 'player_1.png': TileType.Player,
-  # 'player_fleece_1.png': TileType.Player,
-  # 'player_nospear_1.png': TileType.Player,
-  # 'player_nospear_fleece_1.png': TileType.Player,
+  'dung_altar_3.png': TileType.Altar,
+  'dung_altar_used_1.png': TileType.UsedAltar,
+  'dung_fleece_1.png': TileType.Fleece,
+  'dung_portal_1.png': TileType.Portal,
+  'dung_portal_2.png': TileType.Portal,
+  'dung_portal_3.png': TileType.Portal,
+  'mon_bomb_1.png': TileType.BombMon,
+  'mon_bomb_cd_1.png': TileType.BombMonCooldown,
+  'proj_bomb_1.png': TileType.Bomb,
+  'proj_bomb_2.png': TileType.Bomb,
+  'proj_bomb_3.png': TileType.Bomb,
+  'dung_ladderdown_1.png': TileType.LadderDown,
+  'tile_floor_1.png': TileType.Floor,
+  'tile_floor_2.png': TileType.Floor,
+  'tile_liquid_1.png': TileType.Liquid,
+  'tile_liquid_2.png': TileType.Liquid,
+  'tile_liquid_3.png': TileType.Liquid,
+  'mon_bow_1.png': TileType.BowMon,
+  'mon_sword_1.png': TileType.SwordMon,
+  'mon_wizard_1.png': TileType.WizardMon,
+  'mon_wizard_cd_1.png': TileType.WizardMonCooldown,
+  'player_1.png': TileType.Player,
+  'player_fleece_1.png': TileType.Player,
+  'player_nospear_1.png': TileType.Player,
+  'player_nospear_fleece_1.png': TileType.Player,
 }
 
-ASSET_FILE_TO_SCALED_IMAGE = {}
+ASSET_FILE_TO_SCALED_IMAGE_AND_MASK = {}
 
 
 def GetBoard(screenshot):
@@ -67,17 +67,17 @@ def GetBoard(screenshot):
   TILE_HEIGHT = 65
   BOARD_CENTER_Y = 841
 
-  THRESHOLD = 0.8
-  METHOD = cv2.TM_CCOEFF_NORMED  #cv2.TM_SQDIFF_NORMED
+  THRESHOLD = 0.7
+  METHOD = cv2.TM_SQDIFF_NORMED  #cv2.TM_CCOEFF_NORMED  #cv2.TM_SQDIFF_NORMED
 
   ALL_HEXES = [Hex(q, -q - s, s)
                for q in xrange(-4, 4 + 1)
                for s in xrange(-5, 5 + 1)
                if abs(-q - s) <= 5]
-  DEBUG_HEXES = [#Hex(0, 0, 0),    # Empty
-                 #Hex(-2, -3, 5),  # SwordMon
-                 #Hex(4, -4, 0),   # ArcherMon
-                 #Hex(0, 4, -4),   # Player
+  DEBUG_HEXES = [Hex(0, 0, 0),    # Empty
+                 Hex(-2, -3, 5),  # SwordMon
+                 Hex(4, -4, 0),   # BowMon
+                 Hex(0, 4, -4),   # Player
                  Hex(-3, 0, 3),   # Altar
   ]
 
@@ -87,39 +87,44 @@ def GetBoard(screenshot):
   layout = Layout(orientation_flat, Point(TILE_WIDTH, TILE_HEIGHT),
                   Point(screen_width / 2, BOARD_CENTER_Y))
 
-  if not ASSET_FILE_TO_SCALED_IMAGE:
+  if not ASSET_FILE_TO_SCALED_IMAGE_AND_MASK:
     # Load our assets.
     ASSETS_BASE_PATH  = 'hoplite_assets/cleaned/'
     for asset_file, asset_tile_type in ASSET_FILE_TO_TILE_TYPE.iteritems():
       asset_path = os.path.join(ASSETS_BASE_PATH, asset_file)
-      asset = cv2.imread(asset_path, cv2.IMREAD_GRAYSCALE)
-      asset_width, asset_height = asset.shape[::-1]
+      asset = cv2.imread(asset_path, cv2.IMREAD_UNCHANGED)
+      asset_width, asset_height, asset_depth = asset.shape
 
       dpi_multiple = 4
       asset_scaled = np.repeat(np.repeat(asset, dpi_multiple, axis=0),
                                dpi_multiple, axis=1)
-      ASSET_FILE_TO_SCALED_IMAGE[asset_file] = asset_scaled
+      # Opaque pixels white, transparent black.
+      mask = np.uint8(255) * (asset_scaled[:, :, 3] > 0)
+      asset_scaled = mask / 255 * cv2.cvtColor(asset_scaled, cv2.COLOR_BGRA2GRAY)
+      ASSET_FILE_TO_SCALED_IMAGE_AND_MASK[asset_file] = (asset_scaled, mask)
     
 
   tile_hexes = []
-  for h in DEBUG_HEXES: #ALL_HEXES:  #DEBUG_HEXES:
+  for h in ALL_HEXES:  #DEBUG_HEXES:
     print "Looking in hex %s" % (h,)
     hex_img = GetImageByCorners(screenshot,
                                 np.array(map(lambda p: p.Round(),
                                              polygon_corners(layout, h))),
-                                pad=50)
-    hex_width, hex_height = hex_img.shape[::-1]
+                                min_height=150)
+    hex_width, hex_height = hex_img.shape
     cv2.imshow('tile', hex_img)
     cv2.waitKey(1)
 
     hex_tile_type = None
-    for asset_file, asset_image in ASSET_FILE_TO_SCALED_IMAGE.iteritems():
+    for asset_file, (asset_image, mask) in ASSET_FILE_TO_SCALED_IMAGE_AND_MASK.iteritems():
       cv2.imshow('asset', asset_image)
-      cv2.waitKey(1)
-      print hex_img.shape, asset_image.shape, asset_file
-      res = cv2.matchTemplate(hex_img, asset_image, METHOD)
+      cv2.imshow('mask', mask)
+      #print hex_img.shape, asset_image.shape, mask.shape, asset_image.dtype, mask.dtype, asset_file
+      res = cv2.matchTemplate(hex_img, asset_image, METHOD, mask)
       if METHOD in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]: res = 1 - res
-        
+      cv2.imshow('score', res)
+      cv2.waitKey(1)
+      
       loc = np.where(res >= THRESHOLD)
       for pt in zip(*loc[::-1]):
         asset_width, asset_height = asset_image.shape
@@ -129,12 +134,12 @@ def GetBoard(screenshot):
                       (pt[0] + asset_width, pt[1] + asset_height),
                       (0,0,255), 2)
         cv2.imshow('tile', hex_img)
-        cv2.waitKey(100)
+        cv2.waitKey(1000)
         break
       if hex_tile_type: break
     if not hex_tile_type:
       cv2.imshow('tile', hex_img)
-      cv2.waitKey(0)
+      while cv2.waitKey(0) != 10: pass
   
 
 def GetStateFromScreenshot(screenshot):

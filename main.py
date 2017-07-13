@@ -20,6 +20,8 @@ def main():
   cv2.namedWindow('screenshot', cv2.WINDOW_NORMAL)
   cv2.namedWindow('tile', cv2.WINDOW_NORMAL)
   cv2.namedWindow('asset', cv2.WINDOW_NORMAL)
+  cv2.namedWindow('mask', cv2.WINDOW_NORMAL)
+  cv2.namedWindow('score', cv2.WINDOW_NORMAL)
   cv2.imshow('screenshot', screenshot)
 
   cv2.waitKey(1)
